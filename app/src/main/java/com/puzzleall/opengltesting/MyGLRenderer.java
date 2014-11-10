@@ -15,6 +15,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     private static final String TAG = "MyGLRenderer";
 
     private Square mSquare;
+    private Square mSquare2;
 
     // mMVPMatrix is an abbreviation for "Model View Projection Matrix"
     /**
@@ -44,16 +45,30 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
      */
     private float[] mViewMatrix = new float[16];
 
+    float mDistance = 2.5f;
+
     @Override
     public void onSurfaceCreated(GL10 unused, EGLConfig config) {
 
         // Set the background frame color
         GLES20.glClearColor(1, 0.9254901960784314f, 0.392156862745098f, 1);
 
+        renderDistance();
+
+        // Set the view matrix. This matrix can be said to represent the camera position.
+        // NOTE: In OpenGL 1, a ModelView matrix is used, which is a combination of a model and
+        // view matrix. In OpenGL 2, we can keep track of these matrices separately if we choose.
+
+
+        mSquare = new Square();
+        mSquare2 = new Square();
+    }
+
+    private void renderDistance(){
         // Position the eye behind the origin.
         final float eyeX = 0.0f;
         final float eyeY = 0.0f;
-        final float eyeZ = 5.5f;
+        final float eyeZ = mDistance;
 
         // We are looking toward the distance
         final float lookX = 0.0f;
@@ -65,12 +80,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         final float upY = 1.0f;
         final float upZ = 0.0f;
 
-        // Set the view matrix. This matrix can be said to represent the camera position.
-        // NOTE: In OpenGL 1, a ModelView matrix is used, which is a combination of a model and
-        // view matrix. In OpenGL 2, we can keep track of these matrices separately if we choose.
         Matrix.setLookAtM(mViewMatrix, 0, eyeX, eyeY, eyeZ, lookX, lookY, lookZ, upX, upY, upZ);
-
-        mSquare = new Square();
     }
 
     @Override
@@ -82,11 +92,21 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         long time = SystemClock.uptimeMillis() % 10000L;
         float angleInDegrees = (360.0f / 10000.0f) * ((int) time);
 
+
+
+        mDistance = 2.5f + (angleInDegrees / 180);
+        renderDistance();
+
         Matrix.setIdentityM(mModelMatrix, 0);
         Matrix.rotateM(mModelMatrix, 0, angleInDegrees, 0.0f, 0.0f, 1.0f);
 
         // Draw square
         mSquare.draw(mMVPMatrix, mModelMatrix, mProjectionMatrix, mViewMatrix);
+
+        Matrix.setIdentityM(mModelMatrix, 0);
+        Matrix.translateM(mModelMatrix, 0, 0.0f, -1.0f, 0.0f);
+        Matrix.rotateM(mModelMatrix, 0, 45.0f, 1.0f, 0.0f, 0.0f);
+        mSquare2.draw(mMVPMatrix, mModelMatrix, mProjectionMatrix, mViewMatrix);
 
         /*
         // Create a rotation for the triangle
